@@ -1,6 +1,3 @@
 [submodule "vendor/SDL2"]
 	path = vendor/SDL2
 	url = https://github.com/libsdl-org/SDL.git
-[submodule "vendor/simple_db"]
-	path = vendor/simple_db
-	url = https://github.com/X-rays5/simple_db.git
