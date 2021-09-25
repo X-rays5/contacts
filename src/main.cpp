@@ -20,6 +20,22 @@ void SetImGuiStyle() {
 	//ImGui::StyleColorsClassic();
 }
 
+std::vector<std::filesystem::path> FindFonts(const std::string& path) {
+	std::filesystem::directory_iterator dirIt{path};
+	std::vector<std::filesystem::path> res;
+	for (auto&& dirEntry : dirIt)
+	{
+		auto entry_path = dirEntry.path();
+		if (entry_path.has_filename())
+		{
+			if (dirEntry.is_regular_file())
+				if (entry_path.extension().string() == ".ttf")
+					res.emplace_back(entry_path);
+		}
+	}
+	return res;
+}
+
 // Main code
 int main(int, char**)
 {
@@ -56,21 +72,29 @@ int main(int, char**)
     std::shared_ptr<contacts::ui> ui;
     ui = std::make_shared<contacts::ui>(window, &gl_context, glsl_version);
 
-    SetImGuiStyle();
-    ui->LoadFont("Roboto-Medium", "fonts/Roboto-Medium.ttf", 18.f);
-    ui->LoadFont(contacts::tabs::settings::current_font.name, contacts::tabs::settings::current_font.path, 18.f);
-
     simple_db::DB db("contacts/db.simpledb");
     auto contacts = db["contacts"];
     auto settings = db["settings"];
+    contacts::tabs::settings::ActiveFont current_font;
+    strcpy_s(current_font.name, sizeof(current_font.name), settings.Get("font-name").value.c_str());
+
+    SetImGuiStyle();
+    std::string path = std::filesystem::current_path().string();
+					#ifdef WIN32
+    path.append("\\fonts");
+					#elif
+    path.append("/fonts");
+					#endif
+    auto fonts = FindFonts(path);
+    for (auto&& font : fonts)
+    	ui->LoadFont(font.filename().string(), font.string(), 18.f);
 
     contacts::tabs::contacts::SortBy sort;
-    ui->SetRenderCB([ui, &sort, &contacts, &settings]{
+    ui->SetRenderCB([ui, &sort, &contacts, &settings, &current_font]{
     	ImGui::SetNextWindowSize(ImVec2(WINDOW_WIDTH, WINDOW_HEIGHT + 24));
     	ImGui::SetNextWindowPos(ImVec2(0,-24));
 
-    	auto roboto = ui->GetFont("Roboto-Light");
-    	ImGui::PushFont(roboto);
+    	ImGui::PushFont(ui->GetFont(current_font.name));
     	if (ImGui::Begin("Contacts", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoFocusOnAppearing)) {
     		ImGui::BeginTabBar("tabs");
     		if (ImGui::BeginTabItem("Contacts")) {
@@ -78,7 +102,7 @@ int main(int, char**)
     			ImGui::EndTabItem();
     		}
     		if (ImGui::BeginTabItem("Settings")) {
-    			contacts::tabs::settings::Render(&settings);
+    			contacts::tabs::settings::Render(&current_font, &settings, ui);
     			ImGui::EndTabItem();
     		}
     		ImGui::EndTabBar();
