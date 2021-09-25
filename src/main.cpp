@@ -21,16 +21,18 @@ void SetImGuiStyle() {
 }
 
 std::vector<std::filesystem::path> FindFonts(const std::string& path) {
-	std::filesystem::directory_iterator dirIt{path};
 	std::vector<std::filesystem::path> res;
-	for (auto&& dirEntry : dirIt)
-	{
-		auto entry_path = dirEntry.path();
-		if (entry_path.has_filename())
+	if (std::filesystem::is_directory(path)) {
+		std::filesystem::directory_iterator dirIt{path};
+		for (auto&& dirEntry : dirIt)
 		{
-			if (dirEntry.is_regular_file())
-				if (entry_path.extension().string() == ".ttf")
-					res.emplace_back(entry_path);
+			auto entry_path = dirEntry.path();
+			if (entry_path.has_filename())
+			{
+				if (dirEntry.is_regular_file())
+					if (entry_path.extension().string() == ".ttf")
+						res.emplace_back(entry_path);
+			}
 		}
 	}
 	return res;
