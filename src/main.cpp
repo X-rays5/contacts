@@ -92,6 +92,10 @@ int main(int, char**)
     auto fonts = FindFonts(path);
     for (auto&& font : fonts)
     	ui->LoadFont(font.filename().string(), font.string(), 18.f);
+    auto io = ImGui::GetIO();
+    while(!io.Fonts->IsBuilt()) {
+    	io.Fonts->Build();
+    }
 
     contacts::tabs::contacts::SortBy sort;
     bool render_ui = true;
