@@ -118,11 +118,11 @@ namespace contacts {
 					}
 					rapidjson::Value emails;
 					emails.SetArray();
-					for (int i = 0; i < new_contact::emails.size(); i++) {
+					for (auto&& email : new_contact::emails) {
 						rapidjson::Value entry;
 
 						entry.SetObject();
-						entry.AddMember("email", rapidjson::Value().SetString(new_contact::emails[i].c_str(), json.GetAllocator()), json.GetAllocator());
+						entry.AddMember("email", rapidjson::Value().SetString(email.c_str(), json.GetAllocator()), json.GetAllocator());
 
 						emails.PushBack(entry, json.GetAllocator());
 					}
