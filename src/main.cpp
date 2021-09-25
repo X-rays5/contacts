@@ -92,25 +92,28 @@ int main(int, char**)
     	ui->LoadFont(font.filename().string(), font.string(), 18.f);
 
     contacts::tabs::contacts::SortBy sort;
-    ui->SetRenderCB([ui, &sort, &contacts, &settings, &current_font]{
-    	ImGui::SetNextWindowSize(ImVec2(WINDOW_WIDTH, WINDOW_HEIGHT + 24));
-    	ImGui::SetNextWindowPos(ImVec2(0,-24));
+    bool render_ui = true;
+    ui->SetRenderCB([ui, &sort, &contacts, &settings, &current_font, &render_ui]{
+    	if (render_ui) {
+    		ImGui::SetNextWindowSize(ImVec2(WINDOW_WIDTH, WINDOW_HEIGHT + 24));
+    		ImGui::SetNextWindowPos(ImVec2(0,-24));
 
-    	ImGui::PushFont(ui->GetFont(current_font.name));
-    	if (ImGui::Begin("Contacts", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoFocusOnAppearing)) {
-    		ImGui::BeginTabBar("tabs");
-    		if (ImGui::BeginTabItem("Contacts")) {
-    			contacts::tabs::contacts::Render(&sort, &contacts);
-    			ImGui::EndTabItem();
+    		ImGui::PushFont(ui->GetFont(current_font.name));
+    		if (ImGui::Begin("Contacts", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoFocusOnAppearing)) {
+    			ImGui::BeginTabBar("tabs");
+    			if (ImGui::BeginTabItem("Contacts")) {
+    				contacts::tabs::contacts::Render(&sort, &contacts);
+    				ImGui::EndTabItem();
+    			}
+    			if (ImGui::BeginTabItem("Settings")) {
+    				contacts::tabs::settings::Render(&current_font, &settings, ui);
+    				ImGui::EndTabItem();
+    			}
+    			ImGui::EndTabBar();
     		}
-    		if (ImGui::BeginTabItem("Settings")) {
-    			contacts::tabs::settings::Render(&current_font, &settings, ui);
-    			ImGui::EndTabItem();
-    		}
-    		ImGui::EndTabBar();
+    		ImGui::End();
+    		ImGui::PopFont();
     	}
-    	ImGui::End();
-    	ImGui::PopFont();
     });
     // Main loop
     bool done = false;
@@ -122,11 +125,27 @@ int main(int, char**)
     	while (SDL_PollEvent(&event))
     	{
     		ui->SdlEvent(&event);
-    		if (event.type == SDL_QUIT)
-    			done = true;
-    		if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_CLOSE && event.window.windowID == SDL_GetWindowID(window))
-    			done = true;
-    	}
+    		switch(event.type) {
+    			case SDL_QUIT:
+    				done = true;
+    				break;
+    			case SDL_WINDOWEVENT:
+				    switch(event.window.event) {
+				    	case SDL_WINDOWEVENT_CLOSE:
+				    		if (event.window.windowID == SDL_GetWindowID(window))
+				    			done = true;
+				    		break;
+				    	// fix imgui crashing on minimize
+				    	case SDL_WINDOWEVENT_FOCUS_GAINED:
+				    		render_ui = true;
+						    break;
+				    	case SDL_WINDOWEVENT_MINIMIZED:
+				    		render_ui = false;
+						    break;
+				    }
+				    break;
+    		}
+    ; ; 	}
 
     	ui->Tick();
 
