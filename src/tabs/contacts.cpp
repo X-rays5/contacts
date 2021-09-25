@@ -295,10 +295,16 @@ namespace contacts {
 						ui::Tooltip("See emails");
 					} else {
 						ImGui::Text("email: %s", contact.emails[0]);
+					if (ImGui::Button("Delete Contact")) {
+						std::string key = contact.first_name;
+						key.append("_");
+						key.append(contact.last_name);
+						db->Delete(key);
+						current_contact = -1; // go back to home screen
 					}
 				}
 
-				void ListContactsWidget(std::vector<std::string> contacts) {
+				void ListContactsWidget(std::vector<std::string> contacts, simple_db::TableSession* db) {
 					if (ImGui::BeginChild("##contactschild", ImVec2(0,0), true)) {
 						if (current_contact == -1) {
 							for (int i = 0; i < contacts.size(); i++) {
@@ -319,7 +325,7 @@ namespace contacts {
 						} else {
 							rapidjson::Document json;
 							json.Parse(contacts[current_contact].c_str());
-							ViewContact(Contact(json));
+							ViewContact(Contact(json), db);
 						}
 						ImGui::EndChild();
 					}
