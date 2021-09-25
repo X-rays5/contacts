@@ -253,14 +253,13 @@ namespace contacts {
 				}
 
 				std::int32_t current_contact = -1;
-				void ContactHeader(Contact contact) {
+				void ContactHeader(const Contact& contact) {
 					if (ImGui::Button("<----")) {
 						current_contact = -1;
 					}
-					auto window = ImGui::GetWindowDrawList();
 					ui::Tooltip("Go back to the contact list");
 
-					int textsize = std::string(contact.first_name).size() + std::string(contact.last_name).size();
+					std::size_t textsize = std::string(contact.first_name).size() + std::string(contact.last_name).size();
 					float font_size = ImGui::GetFontSize() * textsize / 2;
 					ImGui::SameLine(
 						ImGui::GetWindowSize().x / 2 -
