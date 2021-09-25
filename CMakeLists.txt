@@ -17,7 +17,7 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/vendor/leveldb)
 
 find_package(OpenGL)
 
-add_executable(contacts ${IMGUI_SRC} src/main.cpp src/opengl.hpp src/ui/ui.cpp src/ui/ui.hpp src/tabs/contacts.hpp src/tabs/settings.hpp src/json.hpp)
+add_executable(contacts ${IMGUI_SRC} src/main.cpp src/opengl.hpp src/ui/ui.cpp src/ui/ui.hpp src/tabs/contacts.hpp src/tabs/settings.hpp src/json.hpp src/tabs/contacts.cpp src/tabs/settings.cpp)
 
 target_include_directories(contacts PRIVATE ${SIMPLE_DB_DIR})
 target_include_directories(contacts PRIVATE ${INIREADER_DIR})
