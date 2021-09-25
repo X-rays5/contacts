@@ -216,8 +216,8 @@ namespace contacts {
 							new_contact::phone_numbers_type.push_back(new_contact::type);
 							new_contact::phone_numbers.push_back(new_contact::number);
 						}
-						if (new_contact::email[0] == 0) {
 							new_contact::emails.push_back(new_contact::email);
+						if (new_contact::email[0] != 0) {
 						}
 						busy = false;
 
