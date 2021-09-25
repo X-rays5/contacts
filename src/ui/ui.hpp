@@ -33,11 +33,30 @@ namespace contacts {
 		void SdlEvent(SDL_Event* event) {
 			ImGui_ImplSDL2_ProcessEvent(event);
 		}
+
 		void SetRenderCB(render_cb_t cb) {
 			render_cb = std::move(cb);
 		}
+
+		std::unordered_map<std::string, ImFont*> GetFonts() {
+			return fonts_;
+		}
+
 		bool LoadFont(const std::string& name, const std::string& path, float size);
 		ImFont* GetFont(const std::string& name);
+
+		inline static void Tooltip(const char* text, ...) {
+			if (ImGui::IsItemHovered()) {
+				ImGui::BeginTooltip();
+				va_list args;
+				va_start(args, text);
+				char buf[2048] = { 0 };
+				vsprintf_s(buf, text, args);
+				va_end(args);
+				ImGui::Text("%s", buf);
+				ImGui::EndTooltip();
+			}
+		}
 	private:
 		SDL_Window* window_;
 		render_cb_t render_cb;
