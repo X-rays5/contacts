@@ -134,7 +134,7 @@ namespace contacts {
 
 				// true means still adding
 				// false mean done adding
-				bool AddContactDialog(simple_db::TableSession* db) {
+				bool AddContactDialog(simple_db::TableSession* db, const char* add_label, const char* add_tooltip) {
 					bool busy = true;
 					ImGui::Text("First Name: ");
 					ImGui::SameLine();
@@ -210,7 +210,7 @@ namespace contacts {
 					}
 					ui::Tooltip("Stop creating contact.\nAll data will be lost!");
 					ImGui::SameLine();
-					if (ImGui::Button("Add##add contact")) {
+					if (ImGui::Button(add_label)) {
 						// make sure everything is in the vector
 						if (new_contact::number[0] != 0) {
 							new_contact::phone_numbers_type.emplace_back(new_contact::type);
@@ -227,7 +227,8 @@ namespace contacts {
 						printf("%s\n", NewContactToJsonString().c_str());
 						db->Put(key, NewContactToJsonString());
 					}
-					ui::Tooltip("Create new contact.");
+					if (add_tooltip != std::string(""))
+						ui::Tooltip(add_tooltip);
 					return busy;
 				}
 
@@ -248,7 +249,7 @@ namespace contacts {
 							adding_contact = true;
 						}
 					} else {
-						adding_contact = AddContactDialog(db);
+						adding_contact = AddContactDialog(db, "Add Contact", "");
 					}
 				}
 
@@ -268,43 +269,75 @@ namespace contacts {
 					ImGui::Text("%s %s", contact.first_name, contact.last_name);
 				}
 
+				bool editing_contact = false;
 				void ViewContact(Contact contact, simple_db::TableSession* db) {
-					ContactHeader(contact);
-					ImGui::Separator();
-					if (!contact.phone_numbers.empty()) {
-						if (contact.phone_numbers.size() > 1) {
-							if (ImGui::CollapsingHeader("phone numbers")) {
-								for (auto&& phone_number : contact.phone_numbers) {
-									if (phone_number.type != std::string("") && phone_number.number != std::string(""))
-										ImGui::Text("%s: %s", phone_number.type, phone_number.number);
-								}
-							}
-							ui::Tooltip("See phone numbers");
-						} else {
-							ImGui::Text("%s: %s", contact.phone_numbers[0].type, contact.phone_numbers[0].number);
-						}
+					if (!editing_contact) {
+						ContactHeader(contact);
 						ImGui::Separator();
-					}
-					if (!contact.emails.empty()) {
-						if (contact.emails.size() > 1) {
-							if (ImGui::CollapsingHeader("emails")) {
-								for (auto&& email : contact.emails) {
-									if (email != std::string(""))
-										ImGui::Text("%s", email);
+						if (!contact.phone_numbers.empty()) {
+							if (contact.phone_numbers.size() > 1) {
+								if (ImGui::CollapsingHeader("phone numbers")) {
+									for (auto&& phone_number : contact.phone_numbers) {
+										if (phone_number.type != std::string("") && phone_number.number != std::string(""))
+											ImGui::Text("%s: %s", phone_number.type, phone_number.number);
+									}
 								}
+								ui::Tooltip("See phone numbers");
+							} else {
+								ImGui::Text("%s: %s", contact.phone_numbers[0].type, contact.phone_numbers[0].number);
 							}
-							ui::Tooltip("See emails");
-						} else {
-							ImGui::Text("email: %s", contact.emails[0]);
+							ImGui::Separator();
 						}
-						ImGui::Separator();
-					}
-					if (ImGui::Button("Delete Contact")) {
-						std::string key = contact.first_name;
-						key.append("_");
-						key.append(contact.last_name);
-						db->Delete(key);
-						current_contact = -1; // go back to home screen
+						if (!contact.emails.empty()) {
+							if (contact.emails.size() > 1) {
+								if (ImGui::CollapsingHeader("emails")) {
+									for (auto&& email : contact.emails) {
+										if (email != std::string(""))
+											ImGui::Text("%s", email);
+									}
+								}
+								ui::Tooltip("See emails");
+							} else {
+								ImGui::Text("email: %s", contact.emails[0]);
+							}
+							ImGui::Separator();
+						}
+						if (ImGui::Button("Edit Contact")) {
+							strcpy_s(new_contact::first_name, sizeof(new_contact::first_name), contact.first_name);
+							strcpy_s(new_contact::last_name, sizeof(new_contact::last_name), contact.last_name);
+
+							strcpy_s(new_contact::type, sizeof(new_contact::type), contact.phone_numbers.back().type);
+							strcpy_s(new_contact::number, sizeof(new_contact::number), contact.phone_numbers.back().number);
+							new_contact::phone_numbers_type.clear();
+							new_contact::phone_numbers.clear();
+							for (auto&& phone_number : contact.phone_numbers) {
+								new_contact::phone_numbers_type.emplace_back(phone_number.type);
+								new_contact::phone_numbers.emplace_back(phone_number.number);
+							}
+							new_contact::phone_number_c = contact.phone_numbers.size();
+							new_contact::phone_numbers.pop_back();
+							new_contact::phone_numbers_type.pop_back();
+
+							strcpy_s(new_contact::email, sizeof(new_contact::email), contact.emails.back());
+							new_contact::emails.clear();
+							for (auto&& email : contact.emails) {
+								new_contact::emails.emplace_back(email);
+							}
+							new_contact::email_c = contact.emails.size();
+							new_contact::emails.pop_back();
+
+							editing_contact = AddContactDialog(db, "Edit contact", "");
+						}
+						ImGui::SameLine();
+						if (ImGui::Button("Delete Contact")) {
+							std::string key = contact.first_name;
+							key.append("_");
+							key.append(contact.last_name);
+							db->Delete(key);
+							current_contact = -1; // go back to home screen
+						}
+					} else {
+						editing_contact = AddContactDialog(db, "Edit contact", "");
 					}
 				}
 
