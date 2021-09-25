@@ -34,6 +34,8 @@ std::vector<std::filesystem::path> FindFonts(const std::string& path) {
 						res.emplace_back(entry_path);
 			}
 		}
+	} else {
+		std::filesystem::create_directories(path);
 	}
 	return res;
 }
