@@ -269,32 +269,37 @@ namespace contacts {
 					ImGui::Text("%s %s", contact.first_name, contact.last_name);
 				}
 
-				void ViewContact(Contact contact) {
+				void ViewContact(Contact contact, simple_db::TableSession* db) {
 					ContactHeader(contact);
 					ImGui::Separator();
-					if (contact.phone_numbers.size() > 1) {
-						if (ImGui::CollapsingHeader("phone numbers")) {
-							for (auto&& phone_number : contact.phone_numbers) {
-								if (phone_number.type != std::string("") && phone_number.number != std::string(""))
-									ImGui::Text("%s: %s", phone_number.type, phone_number.number);
+					if (!contact.phone_numbers.empty()) {
+						if (contact.phone_numbers.size() > 1) {
+							if (ImGui::CollapsingHeader("phone numbers")) {
+								for (auto&& phone_number : contact.phone_numbers) {
+									if (phone_number.type != std::string("") && phone_number.number != std::string(""))
+										ImGui::Text("%s: %s", phone_number.type, phone_number.number);
+								}
 							}
+							ui::Tooltip("See phone numbers");
+						} else {
+							ImGui::Text("%s: %s", contact.phone_numbers[0].type, contact.phone_numbers[0].number);
 						}
-						ui::Tooltip("See phone numbers");
-					} else {
-						ImGui::Text("%s: %s", contact.phone_numbers[0].type, contact.phone_numbers[0].number);
+						ImGui::Separator();
 					}
-					ImGui::Separator();
-					if (contact.emails.size() > 1) {
-						if (ImGui::CollapsingHeader("emails")) {
-							for (auto&& email : contact.emails) {
-								if (email != std::string(""))
-									ImGui::Text("%s", email);
+					if (!contact.emails.empty()) {
+						if (contact.emails.size() > 1) {
+							if (ImGui::CollapsingHeader("emails")) {
+								for (auto&& email : contact.emails) {
+									if (email != std::string(""))
+										ImGui::Text("%s", email);
+								}
 							}
-							ImGui::Separator();
+							ui::Tooltip("See emails");
+						} else {
+							ImGui::Text("email: %s", contact.emails[0]);
 						}
-						ui::Tooltip("See emails");
-					} else {
-						ImGui::Text("email: %s", contact.emails[0]);
+						ImGui::Separator();
+					}
 					if (ImGui::Button("Delete Contact")) {
 						std::string key = contact.first_name;
 						key.append("_");
