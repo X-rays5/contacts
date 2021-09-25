@@ -330,10 +330,12 @@ namespace contacts {
 			void Render(SortBy* sort, simple_db::TableSession* db) {
 				auto contacts = SortContacts(sort, db);
 
-				AddContactWidget(db);
-				ImGui::Separator();
-				SortWidget(sort);
-				ListContactsWidget(contacts);
+				if (current_contact == -1) {
+					AddContactWidget(db);
+					ImGui::Separator();
+					SortWidget(sort);
+				}
+				ListContactsWidget(contacts, db);
 			}
 		} // contacts
 	} // tabs
